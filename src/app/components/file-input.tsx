@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Form from 'next/form';
+import sharp from 'sharp';
 
 interface BillItem {
   item_name: string;
@@ -22,6 +23,14 @@ interface OllamaBillResponse {
   };
 }
 
+async function compressRawBase64String(buffer: Buffer): Promise<string> {
+  const compressedBuffer = await sharp(buffer)
+    .resize(800)
+    .jpeg({ quality: 50 })
+    .toBuffer();
+  return compressedBuffer.toString('base64');
+}
+
 async function handleFileUpload(formData: FormData) {
   'use server';
 
@@ -33,8 +42,11 @@ async function handleFileUpload(formData: FormData) {
     try {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const base64String = buffer.toString('base64');
+      let base64String = buffer.toString('base64');
+      base64String = await compressRawBase64String(buffer);
+      console.log('File converted to base64, length:', base64String.length);
       console.log('File converted to base64:', base64String);
+
       const response = await axios('http://10.10.10.7:11434/api/chat', {
         method: 'POST',
         data: {
