@@ -1,6 +1,6 @@
 import axios from 'axios';
-import Form from 'next/form';
 import sharp from 'sharp';
+import FileInputForm from './file-input-form';
 
 interface BillItem {
   item_name: string;
@@ -17,13 +17,23 @@ interface BillData {
   is_a_bill: boolean;
 }
 
-interface OllamaBillResponse {
-  message: {
-    content: string;
-  };
+interface GeminiBillResponse {
+  candidates: [
+    {
+      content: {
+        parts: [
+          {
+            text: string;
+          },
+        ];
+      };
+    },
+  ];
 }
 
 async function compressRawBase64String(buffer: Buffer): Promise<string> {
+  'use server';
+
   const compressedBuffer = await sharp(buffer)
     .resize(800)
     .jpeg({ quality: 50 })
@@ -34,47 +44,115 @@ async function compressRawBase64String(buffer: Buffer): Promise<string> {
 async function handleFileUpload(formData: FormData) {
   'use server';
 
-  console.log('File upload initiated');
-
   const file = formData.get('file-upload') as File;
 
   if (file && file.size > 0) {
     try {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      let base64String = buffer.toString('base64');
-      base64String = await compressRawBase64String(buffer);
-      console.log('File converted to base64, length:', base64String.length);
-      console.log('File converted to base64:', base64String);
+      const compressedBase64String = await compressRawBase64String(buffer);
 
-      const response = await axios('http://10.10.10.7:11434/api/chat', {
-        method: 'POST',
-        data: {
-          keep_alive: '10080m',
-          model: 'qwen2.5vl:3b',
-          messages: [
-            {
-              role: 'user',
-              content:
-                'is the given picture is a bill? if yes, return the information about the bill such as the merchant name for the title, some details about the merchant and cashier for the description, and an array about the item on the bill such as the item name, item multiply, and the item, return the result as json with this format:     "properties": {\r\n"items": {\r\n"type": "array",\r\n"items": {\r\n"type": "object",\r\n"properties": {\r\n"item_name": {\r\n"type": "string"\r\n},\r\n"item_multiply": {\r\n"type": "number"\r\n},\r\n"item_price": {\r\n"type": "number"\r\n}\r\n}\r\n}\r\n},\r\n"bill_title": {\r\n"type": "string"\r\n},\r\n"bill_description": {\r\n"type": "string"\r\n},\r\n"is_a_bill": {\r\n"type": "boolean"\r\n}\r\n}',
-              images: [base64String],
+      const response = await axios(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+        {
+          method: 'POST',
+          data: {
+            contents: [
+              {
+                parts: [
+                  {
+                    inline_data: {
+                      mime_type: 'image/jpeg',
+                      data: compressedBase64String,
+                    },
+                  },
+                  {
+                    text: 'is the given picture is a bill? if yes, return the information about the bill such as the merchant name for the title, some details about the merchant and cashier for the description, and an array about the item on the bill such as the item name, item multiply, and the item',
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: 'OBJECT',
+                properties: {
+                  bill_title: {
+                    type: 'STRING',
+                    description: 'The main title of the bill.',
+                  },
+                  bill_description: {
+                    type: 'STRING',
+                    description:
+                      "A short description of the bill's contents or purpose.",
+                  },
+                  is_a_bill: {
+                    type: 'BOOLEAN',
+                    description: 'A flag to confirm if the document is a bill.',
+                  },
+                  properties: {
+                    type: 'OBJECT',
+                    description: 'Contains the detailed items of the bill.',
+                    properties: {
+                      items: {
+                        type: 'ARRAY',
+                        description:
+                          'A list of all items included in the bill.',
+                        items: {
+                          type: 'OBJECT',
+                          description: 'Represents a single item on the bill.',
+                          properties: {
+                            item_name: {
+                              type: 'STRING',
+                              description: 'The name of the item.',
+                            },
+                            item_multiply: {
+                              type: 'NUMBER',
+                              description:
+                                'The quantity or multiplier for the item.',
+                            },
+                            item_price: {
+                              type: 'NUMBER',
+                              description:
+                                'The price of a single unit of the item.',
+                            },
+                          },
+                          required: [
+                            'item_name',
+                            'item_multiply',
+                            'item_price',
+                          ],
+                        },
+                      },
+                    },
+                    required: ['items'],
+                  },
+                },
+                required: [
+                  'bill_title',
+                  'bill_description',
+                  'is_a_bill',
+                  'properties',
+                ],
+              },
             },
-          ],
-          stream: false,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': process.env.GEMINI_API_KEY,
+          },
         },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      console.log('File uploaded:', response.data);
+      );
 
       const jsonMatch = (
-        response.data as OllamaBillResponse
-      ).message.content.match(/\{[\s\S]*\}/);
+        response.data as GeminiBillResponse
+      ).candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/);
 
       if (!jsonMatch) {
-        console.error('No JSON found in response:', response.data);
+        console.error(
+          '#handleFileUpload - No JSON found in response:',
+          response.data,
+        );
         return;
       }
 
@@ -84,7 +162,7 @@ async function handleFileUpload(formData: FormData) {
 
       console.log('Parsed bill data:', billObject);
     } catch (error) {
-      console.error('Encountored error:', error);
+      console.error('#handleFileUpload - Encountered error:', error);
       return;
     }
   }
@@ -93,45 +171,7 @@ async function handleFileUpload(formData: FormData) {
 export default function FileInput() {
   return (
     <div className="flex justify-center items-center w-full h-full">
-      <Form
-        action={handleFileUpload}
-        className="flex justify-center items-center w-full h-full"
-      >
-        <label
-          style={{
-            color: 'var(--color-grey)',
-          }}
-          htmlFor="file-upload"
-          className="flex items-center flex-col justify-center gap-4 w-21/34 h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-            />
-          </svg>
-
-          <span className="text-xl md:text-2xl lg:md:text-4xl text-center">
-            Click to upload a file
-          </span>
-          <input
-            id="file-upload"
-            name="file-upload"
-            type="file"
-            className="hidden"
-            accept=".jpg, .jpeg, .png"
-          />
-        </label>
-        <input type="submit" value="Upload" />
-      </Form>
+      <FileInputForm handleFileUpload={handleFileUpload} />
     </div>
   );
 }
