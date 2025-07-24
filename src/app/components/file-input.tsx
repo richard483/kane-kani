@@ -15,6 +15,9 @@ interface BillData {
   bill_title: string;
   bill_description: string;
   is_a_bill: boolean;
+  total_price: number;
+  item_includes_tax: boolean;
+  tax_rate?: number;
 }
 
 interface GeminiBillResponse {
@@ -45,13 +48,20 @@ async function handleFileUpload(formData: FormData) {
   'use server';
 
   const file = formData.get('file-upload') as File;
+  console.log('#handleFileUpload - File received:', file);
 
   if (!file || file.size <= 0) return;
+
+  console.log('#handleFileUpload - File size:', file.size);
 
   try {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const compressedBase64String = await compressRawBase64String(buffer);
+    console.log(
+      '#handleFileUpload - Compressed base64 string:',
+      compressedBase64String,
+    );
 
     const response = await axios(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
@@ -84,12 +94,24 @@ async function handleFileUpload(formData: FormData) {
                 },
                 bill_description: {
                   type: 'STRING',
-                  description:
-                    "A short description of the bill's contents or purpose.",
+                  description: "A short information of the bill's contents.",
                 },
                 is_a_bill: {
                   type: 'BOOLEAN',
                   description: 'A flag to confirm if the document is a bill.',
+                },
+                total_price: {
+                  type: 'NUMBER',
+                  description: 'The total price of the bill.',
+                },
+                item_includes_tax: {
+                  type: 'BOOLEAN',
+                  description:
+                    'A flag to confirm if the item in bill is already taxed.',
+                },
+                tax_rate: {
+                  type: 'NUMBER',
+                  description: 'Tax rate in percentage if applicable.',
                 },
                 properties: {
                   type: 'OBJECT',
@@ -138,7 +160,12 @@ async function handleFileUpload(formData: FormData) {
           'x-goog-api-key': process.env.GEMINI_API_KEY,
         },
       },
-    );
+    ).catch((error) => {
+      console.error('#handleFileUpload - Error during API call:', error);
+      throw error;
+    });
+
+    console.log('#handleFileUpload - Response from Gemini:', response.data);
 
     const jsonMatch = (
       response.data as GeminiBillResponse
