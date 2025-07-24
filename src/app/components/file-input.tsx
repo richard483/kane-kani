@@ -1,38 +1,7 @@
 import axios from 'axios';
 import sharp from 'sharp';
 import FileInputForm from './file-input-form';
-
-interface BillItem {
-  item_name: string;
-  item_multiply: number;
-  item_price: number;
-}
-
-interface BillData {
-  properties: {
-    items: BillItem[];
-  };
-  bill_title: string;
-  bill_description: string;
-  is_a_bill: boolean;
-  total_price: number;
-  item_includes_tax: boolean;
-  tax_rate?: number;
-}
-
-interface GeminiBillResponse {
-  candidates: [
-    {
-      content: {
-        parts: [
-          {
-            text: string;
-          },
-        ];
-      };
-    },
-  ];
-}
+import { BillData, GeminiBillResponse } from '../types/Bill';
 
 async function compressRawBase64String(buffer: Buffer): Promise<string> {
   'use server';
@@ -44,22 +13,24 @@ async function compressRawBase64String(buffer: Buffer): Promise<string> {
   return compressedBuffer.toString('base64');
 }
 
-async function handleFileUpload(formData: FormData) {
+async function handleFileProcessing(
+  formData: FormData,
+): Promise<BillData | undefined> {
   'use server';
 
   const file = formData.get('file-upload') as File;
-  console.log('#handleFileUpload - File received:', file);
+  console.log('#handleFileProcessing - File received:', file);
 
   if (!file || file.size <= 0) return;
 
-  console.log('#handleFileUpload - File size:', file.size);
+  console.log('#handleFileProcessing - File size:', file.size);
 
   try {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const compressedBase64String = await compressRawBase64String(buffer);
     console.log(
-      '#handleFileUpload - Compressed base64 string:',
+      '#handleFileProcessing - Compressed base64 string:',
       compressedBase64String,
     );
 
@@ -161,11 +132,11 @@ async function handleFileUpload(formData: FormData) {
         },
       },
     ).catch((error) => {
-      console.error('#handleFileUpload - Error during API call:', error);
+      console.error('#handleFileProcessing - Error during API call:', error);
       throw error;
     });
 
-    console.log('#handleFileUpload - Response from Gemini:', response.data);
+    console.log('#handleFileProcessing - Response from Gemini:', response.data);
 
     const jsonMatch = (
       response.data as GeminiBillResponse
@@ -173,7 +144,7 @@ async function handleFileUpload(formData: FormData) {
 
     if (!jsonMatch) {
       console.error(
-        '#handleFileUpload - No JSON found in response:',
+        '#handleFileProcessing - No JSON found in response:',
         response.data,
       );
       return;
@@ -183,9 +154,9 @@ async function handleFileUpload(formData: FormData) {
 
     const billObject: BillData = JSON.parse(cleanJsonString);
 
-    console.log('Parsed bill data:', billObject);
+    return billObject;
   } catch (error) {
-    console.error('#handleFileUpload - Encountered error:', error);
+    console.error('#handleFileProcessing - Encountered error:', error);
     return;
   }
 }
@@ -193,7 +164,7 @@ async function handleFileUpload(formData: FormData) {
 export default function FileInput() {
   return (
     <div className="flex justify-center items-center w-full h-full">
-      <FileInputForm handleFileUpload={handleFileUpload} />
+      <FileInputForm handleFileProcessing={handleFileProcessing} />
     </div>
   );
 }

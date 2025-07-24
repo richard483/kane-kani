@@ -3,13 +3,14 @@
 import Form from 'next/form';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
+import { BillData } from '../types/Bill';
 
 export default function FileInputForm(props: {
-  handleFileUpload: (formData: FormData) => Promise<void>;
+  handleFileProcessing: (formData: FormData) => Promise<BillData | undefined>;
 }) {
   const [base64InputValue, setBase64InputValue] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { handleFileUpload } = props;
+  const { handleFileProcessing } = props;
 
   const handleInputChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -35,7 +36,18 @@ export default function FileInputForm(props: {
   return (
     <div className="flex justify-center items-center w-full h-full">
       <Form
-        action={handleFileUpload}
+        action={async (formData: FormData) => {
+          const billData = await handleFileProcessing(formData);
+          if (billData) {
+            const queryString = new URLSearchParams({
+              data: JSON.stringify(billData),
+            }).toString();
+
+            window.location.href = `/review?${queryString}`;
+          } else {
+            alert('Failed to process the file. Please try again.');
+          }
+        }}
         className="flex flex-col justify-center items-center w-full h-full"
       >
         {base64InputValue ? (
