@@ -24,6 +24,13 @@ export default function ItemList() {
 
   useEffect(() => {
     if (billData) {
+      if (!billData.item_includes_tax && billData.tax_rate) {
+        billData.properties.items.forEach((item) => {
+          item.item_price =
+            item.item_price +
+            (item.item_price * (billData.tax_rate as number)) / 100;
+        });
+      }
       setUnAssignedItems(billData.properties.items);
     }
   }, []);
@@ -47,6 +54,7 @@ export default function ItemList() {
                       <input
                         type="number"
                         value={memberItem.item_multiply}
+                        className="w-8"
                         onChange={(e) => {
                           const newValue = parseInt(e.target.value);
                           if (!isNaN(newValue)) {
@@ -144,17 +152,20 @@ export default function ItemList() {
             </li>
           ))}
         </ul>
+        <span>
+          Service fee:{' '}
+          {(billData?.service_fee as number) +
+            ((billData?.service_fee as number) *
+              (billData?.tax_rate as number)) /
+              100}{' '}
+          yen
+        </span>
       </div>
-      <ul className="list-disc">
-        {billData?.properties.items.map((item, index) => (
-          <li key={index} className="mb-2">
-            <span className="font-bold">{item.item_name}</span> -{' '}
-            <span>
-              {item.item_multiply} x {item.item_price} yen
-            </span>
-          </li>
-        ))}
-      </ul>
+      {unAssignedItems && unAssignedItems.length === 0 && (
+        <>
+          <button>Proceed to Final Calculation</button>
+        </>
+      )}
     </div>
   );
 }

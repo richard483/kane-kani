@@ -84,6 +84,11 @@ async function handleFileProcessing(
                   type: 'NUMBER',
                   description: 'Tax rate in percentage if applicable.',
                 },
+                service_fee: {
+                  type: 'NUMBER',
+                  description:
+                    'Service fee, zero if not applicable, may include in the item list, if included in item lists, would taken out from the item lists & listed the value on this field without the tax calculation.',
+                },
                 properties: {
                   type: 'OBJECT',
                   description: 'Contains the detailed items of the bill.',
@@ -122,6 +127,8 @@ async function handleFileProcessing(
                 'bill_description',
                 'is_a_bill',
                 'properties',
+                'service_fee',
+                'item_includes_tax',
               ],
             },
           },
@@ -153,6 +160,7 @@ async function handleFileProcessing(
     const cleanJsonString = jsonMatch[0];
 
     const billObject: BillData = JSON.parse(cleanJsonString);
+    console.log('#handleFileProcessing - Parsed bill object:', billObject);
 
     return billObject;
   } catch (error) {

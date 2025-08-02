@@ -14,6 +14,7 @@ export interface BillData {
   total_price: number;
   item_includes_tax: boolean;
   tax_rate?: number;
+  service_fee?: number;
 }
 
 export interface GeminiBillResponse {
