@@ -50,7 +50,8 @@ export default function ItemList() {
                 {Array.from(member.items.values()).map(
                   (memberItem, itemIndex) => (
                     <li key={itemIndex}>
-                      {memberItem.item_name} -{' '}
+                      {memberItem.item_name} {memberItem.item_price}
+                      {' * '}
                       <input
                         type="number"
                         value={memberItem.item_multiply}
@@ -58,7 +59,7 @@ export default function ItemList() {
                         onChange={(e) => {
                           const newValue = parseInt(e.target.value);
                           if (!isNaN(newValue)) {
-                            const diffBetweenOldAndNew =
+                            const diffBetweenNewAndOld =
                               newValue - memberItem.item_multiply;
                             memberItem.item_multiply = newValue;
                             setMembers([...members]);
@@ -69,15 +70,14 @@ export default function ItemList() {
                                   ? {
                                       ...i,
                                       item_multiply:
-                                        i.item_multiply - diffBetweenOldAndNew,
+                                        i.item_multiply - diffBetweenNewAndOld,
                                     }
                                   : i,
                               ) || null,
                             );
                           }
                         }}
-                      />{' '}
-                      x {memberItem.item_price}
+                      />
                     </li>
                   ),
                 )}
