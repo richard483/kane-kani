@@ -6,21 +6,25 @@ import { useEffect, useState } from 'react';
 
 interface Member {
   name: string;
-  items: BillItem[];
+  items: Map<BillItem['item_name'], BillItem>;
 }
 
 export default function ItemList() {
-  const [unAssignedItems, setUnAssignedItems] = useState<BillData | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
   const searchParams = useSearchParams();
   const billDataString = searchParams.get('data');
+  const [unAssignedItems, setUnAssignedItems] = useState<BillItem[] | null>(
+    null,
+  );
+  const [members, setMembers] = useState<Member[]>([]);
   const billData: BillData | null = billDataString
     ? (JSON.parse(billDataString) as BillData)
     : null;
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [newMemberName, setNewMemberName] = useState<string>('');
 
   useEffect(() => {
     if (billData) {
-      setUnAssignedItems(billData);
+      setUnAssignedItems(billData.properties.items);
     }
   }, []);
   return (
@@ -29,27 +33,59 @@ export default function ItemList() {
         <h3>Member</h3>
         <ul className="list-disc">
           {members.map((member, index) => (
-            <li key={index} className="mb-2">
+            <li
+              key={index}
+              className="mb-2 cursor-pointer"
+              onClick={() => setSelectedMember(member)}
+            >
               <span className="font-bold">{member.name}</span>
               <ul className="list-disc ml-4">
-                {member.items.map((item, itemIndex) => (
+                {Array.from(member.items.values()).map((item, itemIndex) => (
                   <li key={itemIndex}>
-                    {item.item_name} - {item.item_multiply} x {item.item_price}{' '}
-                    yen
+                    {item.item_name} -{' '}
+                    <input
+                      type="number"
+                      value={item.item_multiply}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value);
+                        if (!isNaN(newValue)) {
+                          item.item_multiply = newValue;
+                          setMembers([...members]);
+                          setUnAssignedItems(
+                            unAssignedItems?.map((i) =>
+                              i.item_name === item.item_name &&
+                              i.item_price === item.item_price
+                                ? { ...i, item_multiply: newValue }
+                                : i,
+                            ) || null,
+                          );
+                        }
+                      }}
+                    />{' '}
+                    x {item.item_price}
                   </li>
                 ))}
               </ul>
             </li>
           ))}
         </ul>
+        <input
+          type="text"
+          placeholder="Enter member name"
+          value={newMemberName}
+          onChange={(e) => setNewMemberName(e.target.value)}
+        />
         <button
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
           onClick={() => {
             const newMember: Member = {
-              name: `Member ${members.length + 1}`,
-              items: [],
+              name: `${newMemberName || 'Member'} ${
+                newMemberName ? '' : members.length + 1
+              }`,
+              items: new Map(),
             };
             setMembers([...members, newMember]);
+            setNewMemberName('');
           }}
         >
           Add Member
@@ -58,8 +94,41 @@ export default function ItemList() {
       <div>
         <h3>Unassigned Items</h3>
         <ul className="list-disc">
-          {unAssignedItems?.properties.items.map((item, index) => (
-            <li key={index} className="mb-2">
+          {unAssignedItems?.map((item, index) => (
+            <li
+              key={index}
+              className="mb-2"
+              onClick={() => {
+                if (selectedMember) {
+                  if (!selectedMember.items.has(item.item_name)) {
+                    selectedMember.items.set(item.item_name, {
+                      ...item,
+                      item_multiply: 1,
+                    });
+                  } else {
+                    selectedMember.items.get(
+                      item.item_name,
+                    )!.item_multiply += 1;
+                  }
+                  setMembers(
+                    members.map((m) =>
+                      m.name === selectedMember.name ? selectedMember : m,
+                    ),
+                  );
+                  if (item.item_multiply > 1) {
+                    item.item_multiply -= 1;
+                  } else {
+                    setUnAssignedItems(
+                      unAssignedItems.filter(
+                        (i) =>
+                          i.item_name !== item.item_name &&
+                          i.item_price !== item.item_price,
+                      ),
+                    );
+                  }
+                }
+              }}
+            >
               <span className="font-bold">{item.item_name}</span> -{' '}
               <span>
                 {item.item_multiply} x {item.item_price} yen
