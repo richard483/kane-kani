@@ -40,31 +40,39 @@ export default function ItemList() {
             >
               <span className="font-bold">{member.name}</span>
               <ul className="list-disc ml-4">
-                {Array.from(member.items.values()).map((item, itemIndex) => (
-                  <li key={itemIndex}>
-                    {item.item_name} -{' '}
-                    <input
-                      type="number"
-                      value={item.item_multiply}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value);
-                        if (!isNaN(newValue)) {
-                          item.item_multiply = newValue;
-                          setMembers([...members]);
-                          setUnAssignedItems(
-                            unAssignedItems?.map((i) =>
-                              i.item_name === item.item_name &&
-                              i.item_price === item.item_price
-                                ? { ...i, item_multiply: newValue }
-                                : i,
-                            ) || null,
-                          );
-                        }
-                      }}
-                    />{' '}
-                    x {item.item_price}
-                  </li>
-                ))}
+                {Array.from(member.items.values()).map(
+                  (memberItem, itemIndex) => (
+                    <li key={itemIndex}>
+                      {memberItem.item_name} -{' '}
+                      <input
+                        type="number"
+                        value={memberItem.item_multiply}
+                        onChange={(e) => {
+                          const newValue = parseInt(e.target.value);
+                          if (!isNaN(newValue)) {
+                            const diffBetweenOldAndNew =
+                              newValue - memberItem.item_multiply;
+                            memberItem.item_multiply = newValue;
+                            setMembers([...members]);
+                            setUnAssignedItems(
+                              unAssignedItems?.map((i) =>
+                                i.item_name === memberItem.item_name &&
+                                i.item_price === memberItem.item_price
+                                  ? {
+                                      ...i,
+                                      item_multiply:
+                                        i.item_multiply - diffBetweenOldAndNew,
+                                    }
+                                  : i,
+                              ) || null,
+                            );
+                          }
+                        }}
+                      />{' '}
+                      x {memberItem.item_price}
+                    </li>
+                  ),
+                )}
               </ul>
             </li>
           ))}
