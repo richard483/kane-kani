@@ -9,9 +9,7 @@ interface Member {
   items: Map<BillItem['item_name'], BillItem>;
 }
 
-export default function ItemList(props: {
-  handleFinalCalc: (members: Member[], billData: BillData) => Promise<void>;
-}) {
+export default function FinalCalc() {
   const searchParams = useSearchParams();
   const billDataString = searchParams.get('data');
   const [unAssignedItems, setUnAssignedItems] = useState<BillItem[] | null>(
@@ -165,17 +163,7 @@ export default function ItemList(props: {
       </div>
       {unAssignedItems && unAssignedItems.length === 0 && (
         <>
-          <button
-            onClick={async () => {
-              if (billData) {
-                await props.handleFinalCalc(members, billData);
-              }
-              window.location.href = '/final';
-            }}
-            className="mt-4 px-4 py-2 bg-green-500 text-white rounded"
-          >
-            Proceed to Final Calculation
-          </button>
+          <button>Proceed to Final Calculation</button>
         </>
       )}
     </div>
