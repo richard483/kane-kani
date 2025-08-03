@@ -9,6 +9,7 @@ export default function FileInputForm(props: {
   handleFileProcessing: (formData: FormData) => Promise<BillData | undefined>;
 }) {
   const [base64InputValue, setBase64InputValue] = useState<string>('');
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { handleFileProcessing } = props;
 
@@ -19,11 +20,13 @@ export default function FileInputForm(props: {
 
     if (!file) return;
 
+    setLoading(true);
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const base64String = buffer.toString('base64');
 
     setBase64InputValue(base64String);
+    setLoading(false);
   };
 
   const handleClearInput = () => {
@@ -37,6 +40,7 @@ export default function FileInputForm(props: {
     <div className="flex justify-center items-center w-full h-full">
       <Form
         action={async (formData: FormData) => {
+          setLoading(true);
           const billData = await handleFileProcessing(formData);
           if (billData) {
             const queryString = new URLSearchParams({
@@ -47,13 +51,14 @@ export default function FileInputForm(props: {
           } else {
             alert('Failed to process the file. Please try again.');
           }
+          setLoading(false);
         }}
         className="flex flex-col justify-center items-center w-full h-full"
       >
         {base64InputValue ? (
           <div className="relative items-center">
             <Image
-              className="absolute top-0 right-0 cursor-pointer"
+              className="absolute top-2 right-2 cursor-pointer bg-white rounded-full"
               src={'/circle-xmark.svg'}
               alt="xmark"
               width={25}
@@ -65,15 +70,13 @@ export default function FileInputForm(props: {
               alt="Uploaded file preview"
               width={256}
               height={256}
+              className="rounded-lg"
             />
           </div>
         ) : (
           <label
-            style={{
-              color: 'var(--color-grey)',
-            }}
             htmlFor="file-upload"
-            className="flex items-center flex-col justify-center gap-4 w-21/34 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400"
+            className="flex items-center flex-col justify-center gap-4 w-full h-48 sm:h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -81,7 +84,7 @@ export default function FileInputForm(props: {
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="size-6"
+              className="w-10 h-10 text-gray-500"
             >
               <path
                 strokeLinecap="round"
@@ -90,7 +93,7 @@ export default function FileInputForm(props: {
               />
             </svg>
 
-            <span className="text-xl md:text-2xl lg:md:text-3xl text-center">
+            <span className="text-lg sm:text-xl md:text-2xl text-center text-gray-500">
               Click to upload a file
             </span>
           </label>
@@ -103,13 +106,16 @@ export default function FileInputForm(props: {
           accept=".jpg, .jpeg, .png"
           ref={fileInputRef}
           onChange={handleInputChange}
+          disabled={loading}
         />
-        <input
-          type="submit"
-          value="Upload"
-          style={{ backgroundColor: 'var(--color-green)' }}
-          className="text-black py-2 px-4 rounded mt-8 cursor-pointer"
-        />
+        {base64InputValue && (
+          <input
+            type="submit"
+            value={loading ? 'Processing...' : 'Upload'}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-8 cursor-pointer w-full"
+            disabled={loading || !base64InputValue}
+          />
+        )}
       </Form>
     </div>
   );

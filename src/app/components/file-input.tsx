@@ -171,7 +171,11 @@ async function handleFileProcessing(
 
 export default function FileInput() {
   return (
-    <div className="flex justify-center items-center w-full h-full">
+    <div className="flex flex-col justify-center items-center w-full h-full p-4 text-center">
+      <p className="mb-4 text-gray-600">
+        Upload an image of your bill to get started. We'll extract the details
+        for you.
+      </p>
       <FileInputForm handleFileProcessing={handleFileProcessing} />
     </div>
   );

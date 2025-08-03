@@ -1,171 +1,82 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import { BillData, BillItem } from '../types/Bill';
-import { useEffect, useState } from 'react';
 
 interface Member {
   name: string;
-  items: Map<BillItem['item_name'], BillItem>;
+  items: Map<string, BillItem>;
 }
 
-export default function FinalCalc() {
-  const searchParams = useSearchParams();
-  const billDataString = searchParams.get('data');
-  const [unAssignedItems, setUnAssignedItems] = useState<BillItem[] | null>(
-    null,
-  );
-  const [members, setMembers] = useState<Member[]>([]);
-  const billData: BillData | null = billDataString
-    ? (JSON.parse(billDataString) as BillData)
-    : null;
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [newMemberName, setNewMemberName] = useState<string>('');
+interface FinalCalcProps {
+  billData: BillData;
+  members: Member[];
+}
 
-  useEffect(() => {
-    if (billData) {
-      if (!billData.item_includes_tax && billData.tax_rate) {
-        billData.properties.items.forEach((item) => {
-          item.item_price =
-            item.item_price +
-            (item.item_price * (billData.tax_rate as number)) / 100;
-        });
-      }
-      setUnAssignedItems(billData.properties.items);
-    }
-  }, []);
+export default function FinalCalc({ billData, members }: FinalCalcProps) {
+  const calculateMemberTotal = (member: Member) => {
+    let total = 0;
+    member.items.forEach((item) => {
+      total += item.item_price * item.item_multiply;
+    });
+    return total;
+  };
+
+  const serviceFeePerPerson =
+    ((billData.service_fee || 0) +
+      ((billData.service_fee || 0) * (billData.tax_rate || 0)) / 100) /
+    members.length;
+
   return (
-    <div className="flex flex-col gap-10 justify-center items-center w-full h-full">
-      <div>
-        <h3>Member</h3>
-        <ul className="list-disc">
-          {members.map((member, index) => (
-            <li
-              key={index}
-              className="mb-2 cursor-pointer"
-              onClick={() => setSelectedMember(member)}
-            >
-              <span className="font-bold">{member.name}</span>
-              <ul className="list-disc ml-4">
-                {Array.from(member.items.values()).map(
-                  (memberItem, itemIndex) => (
-                    <li key={itemIndex}>
-                      {memberItem.item_name} {memberItem.item_price}
-                      {' * '}
-                      <input
-                        type="number"
-                        value={memberItem.item_multiply}
-                        className="w-8"
-                        onChange={(e) => {
-                          const newValue = parseInt(e.target.value);
-                          if (!isNaN(newValue)) {
-                            const diffBetweenNewAndOld =
-                              newValue - memberItem.item_multiply;
-                            memberItem.item_multiply = newValue;
-                            setMembers([...members]);
-                            setUnAssignedItems(
-                              unAssignedItems?.map((i) =>
-                                i.item_name === memberItem.item_name &&
-                                i.item_price === memberItem.item_price
-                                  ? {
-                                      ...i,
-                                      item_multiply:
-                                        i.item_multiply - diffBetweenNewAndOld,
-                                    }
-                                  : i,
-                              ) || null,
-                            );
-                          }
-                        }}
-                      />
-                    </li>
-                  ),
-                )}
-              </ul>
-            </li>
-          ))}
-        </ul>
-        <input
-          type="text"
-          placeholder="Enter member name"
-          value={newMemberName}
-          onChange={(e) => setNewMemberName(e.target.value)}
-        />
-        <button
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={() => {
-            const newMember: Member = {
-              name: `${newMemberName || 'Member'} ${
-                newMemberName ? '' : members.length + 1
-              }`,
-              items: new Map(),
-            };
-            setMembers([...members, newMember]);
-            setNewMemberName('');
-          }}
-        >
-          Add Member
-        </button>
+    <div className="w-full max-w-4xl p-4 sm:p-8 bg-white shadow-lg rounded-lg">
+      <h2 className="text-3xl font-bold text-center mb-6">
+        {billData.bill_title}
+      </h2>
+      <p className="text-center text-gray-600 mb-8">
+        {billData.bill_description}
+      </p>
+
+      <div className="space-y-6">
+        {members.map((member, index) => (
+          <div key={index} className="p-6 border rounded-lg">
+            <h3 className="text-2xl font-semibold mb-4">{member.name}</h3>
+            <ul className="space-y-2 mb-4">
+              {Array.from(member.items.values()).map((item, itemIndex) => (
+                <li key={itemIndex} className="flex justify-between">
+                  <span>
+                    {item.item_name} (x{item.item_multiply})
+                  </span>
+                  <span>{item.item_price * item.item_multiply} yen</span>
+                </li>
+              ))}
+            </ul>
+            <div className="border-t pt-4 mt-4">
+              <div className="flex justify-between font-semibold">
+                <span>Subtotal</span>
+                <span>{calculateMemberTotal(member)} yen</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Service Fee</span>
+                <span>{serviceFeePerPerson.toFixed(2)} yen</span>
+              </div>
+              <div className="flex justify-between text-xl font-bold mt-2">
+                <span>Total</span>
+                <span>
+                  {(calculateMemberTotal(member) + serviceFeePerPerson).toFixed(
+                    2,
+                  )}{' '}
+                  yen
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-      <div>
-        <h3>Unassigned Items</h3>
-        <ul className="list-disc">
-          {unAssignedItems?.map((item, index) => (
-            <li
-              key={index}
-              className="mb-2"
-              onClick={() => {
-                if (selectedMember) {
-                  if (!selectedMember.items.has(item.item_name)) {
-                    selectedMember.items.set(item.item_name, {
-                      ...item,
-                      item_multiply: 1,
-                    });
-                  } else {
-                    selectedMember.items.get(
-                      item.item_name,
-                    )!.item_multiply += 1;
-                  }
-                  setMembers(
-                    members.map((m) =>
-                      m.name === selectedMember.name ? selectedMember : m,
-                    ),
-                  );
-                  if (item.item_multiply > 1) {
-                    item.item_multiply -= 1;
-                  } else {
-                    setUnAssignedItems(
-                      unAssignedItems.filter(
-                        (i) =>
-                          i.item_name !== item.item_name &&
-                          i.item_price !== item.item_price,
-                      ),
-                    );
-                  }
-                }
-              }}
-            >
-              <span className="font-bold">{item.item_name}</span> -{' '}
-              <span>
-                {item.item_multiply} x {item.item_price} yen
-              </span>
-            </li>
-          ))}
-        </ul>
-        <span>
-          Service fee:{' '}
-          {(billData?.service_fee as number) +
-            ((billData?.service_fee as number) *
-              (billData?.tax_rate as number)) /
-              100}{' '}
-          yen
-        </span>
+
+      <div className="mt-8 text-center">
+        <h3 className="text-2xl font-bold">
+          Total Bill Amount: {billData.total_price} yen
+        </h3>
       </div>
-      {unAssignedItems && unAssignedItems.length === 0 && (
-        <>
-          <button>Proceed to Final Calculation</button>
-        </>
-      )}
     </div>
   );
 }
