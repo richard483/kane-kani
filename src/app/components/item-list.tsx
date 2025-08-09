@@ -5,8 +5,12 @@ import { BillData, BillItem } from '../types/Bill';
 import { useEffect, useState } from 'react';
 
 interface Member {
+  id: number;
   name: string;
   items: Map<BillItem['item_name'], BillItem>;
+}
+interface BillItemWithId extends BillItem {
+  id: string;
 }
 
 export default function ItemList(props: {
@@ -14,9 +18,9 @@ export default function ItemList(props: {
 }) {
   const searchParams = useSearchParams();
   const billDataString = searchParams.get('data');
-  const [unAssignedItems, setUnAssignedItems] = useState<BillItem[] | null>(
-    null,
-  );
+  const [unAssignedItems, setUnAssignedItems] = useState<
+    BillItemWithId[] | null
+  >(null);
   const [members, setMembers] = useState<Member[]>([]);
   const billData: BillData | null = billDataString
     ? (JSON.parse(billDataString) as BillData)
@@ -33,7 +37,13 @@ export default function ItemList(props: {
             (item.item_price * (billData.tax_rate as number)) / 100;
         });
       }
-      setUnAssignedItems(billData.properties.items);
+
+      setUnAssignedItems(
+        billData.properties.items.map((item, index) => ({
+          ...item,
+          id: `${index}-${item.item_name}`,
+        })),
+      );
     }
   }, []);
   return (
@@ -97,6 +107,7 @@ export default function ItemList(props: {
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
           onClick={() => {
             const newMember: Member = {
+              id: members.length + 1,
               name: `${newMemberName || 'Member'} ${
                 newMemberName ? '' : members.length + 1
               }`,
@@ -130,18 +141,14 @@ export default function ItemList(props: {
                   }
                   setMembers(
                     members.map((m) =>
-                      m.name === selectedMember.name ? selectedMember : m,
+                      m.id === selectedMember.id ? selectedMember : m,
                     ),
                   );
                   if (item.item_multiply > 1) {
                     item.item_multiply -= 1;
                   } else {
                     setUnAssignedItems(
-                      unAssignedItems.filter(
-                        (i) =>
-                          i.item_name !== item.item_name &&
-                          i.item_price !== item.item_price,
-                      ),
+                      unAssignedItems.filter((i) => i.id !== item.id),
                     );
                   }
                 }
@@ -149,7 +156,7 @@ export default function ItemList(props: {
             >
               <span className="font-bold">{item.item_name}</span> -{' '}
               <span>
-                {item.item_multiply} x {item.item_price} yen
+                {item.item_multiply} x {item.item_price}
               </span>
             </li>
           ))}
@@ -159,8 +166,7 @@ export default function ItemList(props: {
           {(billData?.service_fee as number) +
             ((billData?.service_fee as number) *
               (billData?.tax_rate as number)) /
-              100}{' '}
-          yen
+              100}
         </span>
       </div>
       {unAssignedItems && unAssignedItems.length === 0 && (

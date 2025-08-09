@@ -5,6 +5,7 @@ import { BillData, BillItem } from '../types/Bill';
 import { useEffect, useState } from 'react';
 
 interface Member {
+  id: number;
   name: string;
   items: Map<BillItem['item_name'], BillItem>;
 }
@@ -95,6 +96,7 @@ export default function FinalCalc() {
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
           onClick={() => {
             const newMember: Member = {
+              id: members.length + 1,
               name: `${newMemberName || 'Member'} ${
                 newMemberName ? '' : members.length + 1
               }`,
@@ -128,7 +130,7 @@ export default function FinalCalc() {
                   }
                   setMembers(
                     members.map((m) =>
-                      m.name === selectedMember.name ? selectedMember : m,
+                      m.id === selectedMember.id ? selectedMember : m,
                     ),
                   );
                   if (item.item_multiply > 1) {
@@ -147,7 +149,7 @@ export default function FinalCalc() {
             >
               <span className="font-bold">{item.item_name}</span> -{' '}
               <span>
-                {item.item_multiply} x {item.item_price} yen
+                {item.item_multiply} x {item.item_price}
               </span>
             </li>
           ))}
@@ -157,8 +159,7 @@ export default function FinalCalc() {
           {(billData?.service_fee as number) +
             ((billData?.service_fee as number) *
               (billData?.tax_rate as number)) /
-              100}{' '}
-          yen
+              100}
         </span>
       </div>
       {unAssignedItems && unAssignedItems.length === 0 && (
