@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import FinalCalc from '../components/final-calc';
 import { BillData, BillItem } from '../types/Bill';
+import { Suspense } from 'react';
 
 interface Member {
   name: string;
@@ -48,7 +49,9 @@ export default function Home() {
           );
         })}
       </div>
-      <FinalCalc />
+      <Suspense>
+        <FinalCalc />
+      </Suspense>
     </div>
   );
 }

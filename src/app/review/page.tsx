@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import ItemList from '../components/item-list';
 import { BillData, BillItem } from '../types/Bill';
+import { Suspense } from 'react';
 
 interface Member {
   name: string;
@@ -20,7 +21,9 @@ export default function Home() {
       <h1 className="text-xl font-bold mb-16 text-center">
         Review Your Bill Data!
       </h1>
-      <ItemList handleFinalCalc={handleFinalCalc} />
+      <Suspense>
+        <ItemList handleFinalCalc={handleFinalCalc} />
+      </Suspense>
     </div>
   );
 }
