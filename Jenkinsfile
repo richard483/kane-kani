@@ -16,7 +16,4 @@ KubePipeline() {
 	projectName = "kane-kani"
 	appPort = "3000"
     externalEndpointsIp = "10.10.10.11"
-    buildArgs = [
-        GEMINI_API_KEY: "\"${this.env.GEMINI_API_KEY}\""
-    ]
 }
