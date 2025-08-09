@@ -14,8 +14,6 @@ RUN npm install
 # Copy the rest of your application's source code
 COPY . .
 
-# Set a dummy environment variable for the build, as Next.js requires it at build time
-ENV GEMINI_API_KEY=dummy_value
 
 # Build the Next.js application
 RUN npm run build
