@@ -1,7 +1,5 @@
 import { cookies } from 'next/headers';
-import FinalCalc from '../components/final-calc';
 import { BillData, BillItem } from '../types/Bill';
-import { Suspense } from 'react';
 
 interface Member {
   id: number;
@@ -16,12 +14,33 @@ async function getCookieData(): Promise<{
   members: Member[];
 }> {
   const cookieStore = await cookies();
-  const billData = cookieStore.get('billData');
-  const members = cookieStore.get('members');
+  const billDataString = cookieStore.get('billData');
+  const membersString = cookieStore.get('members');
+
+  const billData: BillData = billDataString
+    ? JSON.parse(billDataString.value)
+    : null;
+  const members: Member[] = membersString
+    ? JSON.parse(membersString.value)
+    : [];
+
+  if (billData?.service_fee != null || billData?.service_fee != undefined) {
+    const serviceFee =
+      (billData.service_fee +
+        (billData.service_fee * (billData.tax_rate as number)) / 100) /
+      members.length;
+    members.forEach((member) => {
+      member.items['service_fee'] = {
+        item_name: 'Service Fee',
+        item_price: serviceFee,
+        item_multiply: 1,
+      };
+    });
+  }
 
   return {
-    billData: billData ? JSON.parse(billData.value) : null,
-    members: members ? JSON.parse(members.value) : [],
+    billData,
+    members,
   };
 }
 
@@ -70,9 +89,6 @@ export default function Home() {
           );
         })}
       </div>
-      <Suspense>
-        <FinalCalc />
-      </Suspense>
     </div>
   );
 }
