@@ -4,8 +4,11 @@ import { BillData, BillItem } from '../types/Bill';
 import { Suspense } from 'react';
 
 interface Member {
+  id: number;
   name: string;
-  items: Map<BillItem['item_name'], BillItem>;
+  items: {
+    [key: string]: BillItem;
+  };
 }
 
 async function getCookieData(): Promise<{
@@ -42,7 +45,25 @@ export default function Home() {
               <h3 className="text-md font-semibold mt-4">Members:</h3>
               <ul className="list-disc ml-6">
                 {members.map((member, index) => (
-                  <li key={index}>{member.name}</li>
+                  <li key={index} className="mb-2">
+                    <span className="font-bold">{member.name}</span>
+                    <ul className="list-disc ml-4">
+                      {Object.values(member.items).map((item, itemIndex) => (
+                        <li key={itemIndex}>
+                          {item.item_name} - {item.item_price} x{' '}
+                          {item.item_multiply}
+                        </li>
+                      ))}
+                      <li className="font-bold">
+                        Total:{' '}
+                        {Object.values(member.items).reduce(
+                          (acc, item) =>
+                            acc + item.item_price * item.item_multiply,
+                          0,
+                        )}
+                      </li>
+                    </ul>
+                  </li>
                 ))}
               </ul>
             </div>

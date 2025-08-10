@@ -4,8 +4,11 @@ import { BillData, BillItem } from '../types/Bill';
 import { Suspense } from 'react';
 
 interface Member {
+  id: number;
   name: string;
-  items: Map<BillItem['item_name'], BillItem>;
+  items: {
+    [key: string]: BillItem;
+  };
 }
 
 async function handleFinalCalc(members: Member[], billData: BillData) {

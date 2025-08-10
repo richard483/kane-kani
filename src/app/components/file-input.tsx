@@ -87,7 +87,7 @@ async function handleFileProcessing(
                 service_fee: {
                   type: 'NUMBER',
                   description:
-                    'Service fee, zero if not applicable, may include in the item list, if included in item lists, would taken out from the item lists & listed the value on this field without the tax calculation.',
+                    'Service fee (including service fee, and charge for Take Away (charge TA)), zero if not applicable, may include in the item list. If included in item lists, would taken out from the item lists & show the value on this serivce field without the tax calculation.',
                 },
                 properties: {
                   type: 'OBJECT',

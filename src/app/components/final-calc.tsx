@@ -7,20 +7,18 @@ import { useEffect, useState } from 'react';
 interface Member {
   id: number;
   name: string;
-  items: Map<BillItem['item_name'], BillItem>;
+  items: {
+    [key: string]: BillItem;
+  };
 }
 
 export default function FinalCalc() {
   const searchParams = useSearchParams();
   const billDataString = searchParams.get('data');
-  const [unAssignedItems, setUnAssignedItems] = useState<BillItem[] | null>(
-    null,
-  );
   const [members, setMembers] = useState<Member[]>([]);
   const billData: BillData | null = billDataString
     ? (JSON.parse(billDataString) as BillData)
     : null;
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [newMemberName, setNewMemberName] = useState<string>('');
 
   useEffect(() => {
@@ -32,7 +30,6 @@ export default function FinalCalc() {
             (item.item_price * (billData.tax_rate as number)) / 100;
         });
       }
-      setUnAssignedItems(billData.properties.items);
     }
   }, []);
   return (
@@ -41,47 +38,12 @@ export default function FinalCalc() {
         <h3>Member</h3>
         <ul className="list-disc">
           {members.map((member, index) => (
-            <li
-              key={index}
-              className="mb-2 cursor-pointer"
-              onClick={() => setSelectedMember(member)}
-            >
+            <li key={index} className="mb-2 cursor-pointer">
               <span className="font-bold">{member.name}</span>
               <ul className="list-disc ml-4">
-                {Array.from(member.items.values()).map(
-                  (memberItem, itemIndex) => (
-                    <li key={itemIndex}>
-                      {memberItem.item_name} {memberItem.item_price}
-                      {' * '}
-                      <input
-                        type="number"
-                        value={memberItem.item_multiply}
-                        className="w-8"
-                        onChange={(e) => {
-                          const newValue = parseInt(e.target.value);
-                          if (!isNaN(newValue)) {
-                            const diffBetweenNewAndOld =
-                              newValue - memberItem.item_multiply;
-                            memberItem.item_multiply = newValue;
-                            setMembers([...members]);
-                            setUnAssignedItems(
-                              unAssignedItems?.map((i) =>
-                                i.item_name === memberItem.item_name &&
-                                i.item_price === memberItem.item_price
-                                  ? {
-                                      ...i,
-                                      item_multiply:
-                                        i.item_multiply - diffBetweenNewAndOld,
-                                    }
-                                  : i,
-                              ) || null,
-                            );
-                          }
-                        }}
-                      />
-                    </li>
-                  ),
-                )}
+                {Object.values(member.items).map((memberItem, itemIndex) => (
+                  <li key={itemIndex}></li>
+                ))}
               </ul>
             </li>
           ))}
@@ -100,7 +62,7 @@ export default function FinalCalc() {
               name: `${newMemberName || 'Member'} ${
                 newMemberName ? '' : members.length + 1
               }`,
-              items: new Map(),
+              items: {},
             };
             setMembers([...members, newMember]);
             setNewMemberName('');
@@ -109,64 +71,6 @@ export default function FinalCalc() {
           Add Member
         </button>
       </div>
-      <div>
-        <h3>Unassigned Items</h3>
-        <ul className="list-disc">
-          {unAssignedItems?.map((item, index) => (
-            <li
-              key={index}
-              className="mb-2"
-              onClick={() => {
-                if (selectedMember) {
-                  if (!selectedMember.items.has(item.item_name)) {
-                    selectedMember.items.set(item.item_name, {
-                      ...item,
-                      item_multiply: 1,
-                    });
-                  } else {
-                    selectedMember.items.get(
-                      item.item_name,
-                    )!.item_multiply += 1;
-                  }
-                  setMembers(
-                    members.map((m) =>
-                      m.id === selectedMember.id ? selectedMember : m,
-                    ),
-                  );
-                  if (item.item_multiply > 1) {
-                    item.item_multiply -= 1;
-                  } else {
-                    setUnAssignedItems(
-                      unAssignedItems.filter(
-                        (i) =>
-                          i.item_name !== item.item_name &&
-                          i.item_price !== item.item_price,
-                      ),
-                    );
-                  }
-                }
-              }}
-            >
-              <span className="font-bold">{item.item_name}</span> -{' '}
-              <span>
-                {item.item_multiply} x {item.item_price}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <span>
-          Service fee:{' '}
-          {(billData?.service_fee as number) +
-            ((billData?.service_fee as number) *
-              (billData?.tax_rate as number)) /
-              100}
-        </span>
-      </div>
-      {unAssignedItems && unAssignedItems.length === 0 && (
-        <>
-          <button>Proceed to Final Calculation</button>
-        </>
-      )}
     </div>
   );
 }

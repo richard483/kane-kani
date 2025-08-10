@@ -7,7 +7,9 @@ import { useEffect, useState } from 'react';
 interface Member {
   id: number;
   name: string;
-  items: Map<BillItem['item_name'], BillItem>;
+  items: {
+    [key: string]: BillItemWithId;
+  };
 }
 interface BillItemWithId extends BillItem {
   id: string;
@@ -59,40 +61,37 @@ export default function ItemList(props: {
             >
               <span className="font-bold">{member.name}</span>
               <ul className="list-disc ml-4">
-                {Array.from(member.items.values()).map(
-                  (memberItem, itemIndex) => (
-                    <li key={itemIndex}>
-                      {memberItem.item_name} {memberItem.item_price}
-                      {' * '}
-                      <input
-                        type="number"
-                        value={memberItem.item_multiply}
-                        className="w-8"
-                        onChange={(e) => {
-                          const newValue = parseInt(e.target.value);
-                          if (!isNaN(newValue)) {
-                            const diffBetweenNewAndOld =
-                              newValue - memberItem.item_multiply;
-                            memberItem.item_multiply = newValue;
-                            setMembers([...members]);
-                            setUnAssignedItems(
-                              unAssignedItems?.map((i) =>
-                                i.item_name === memberItem.item_name &&
-                                i.item_price === memberItem.item_price
-                                  ? {
-                                      ...i,
-                                      item_multiply:
-                                        i.item_multiply - diffBetweenNewAndOld,
-                                    }
-                                  : i,
-                              ) || null,
-                            );
-                          }
-                        }}
-                      />
-                    </li>
-                  ),
-                )}
+                {Object.values(member.items).map((memberItem, itemIndex) => (
+                  <li key={itemIndex}>
+                    {memberItem.item_name} {memberItem.item_price}
+                    {' * '}
+                    <input
+                      type="number"
+                      value={memberItem.item_multiply}
+                      className="w-8"
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value);
+                        if (!isNaN(newValue)) {
+                          const diffBetweenNewAndOld =
+                            newValue - memberItem.item_multiply;
+                          memberItem.item_multiply = newValue;
+                          setMembers([...members]);
+                          setUnAssignedItems(
+                            unAssignedItems?.map((i) =>
+                              i.id == memberItem.id
+                                ? {
+                                    ...i,
+                                    item_multiply:
+                                      i.item_multiply - diffBetweenNewAndOld,
+                                  }
+                                : i,
+                            ) || null,
+                          );
+                        }
+                      }}
+                    />
+                  </li>
+                ))}
               </ul>
             </li>
           ))}
@@ -111,7 +110,7 @@ export default function ItemList(props: {
               name: `${newMemberName || 'Member'} ${
                 newMemberName ? '' : members.length + 1
               }`,
-              items: new Map(),
+              items: {},
             };
             setMembers([...members, newMember]);
             setNewMemberName('');
@@ -129,15 +128,14 @@ export default function ItemList(props: {
               className="mb-2"
               onClick={() => {
                 if (selectedMember) {
-                  if (!selectedMember.items.has(item.item_name)) {
-                    selectedMember.items.set(item.item_name, {
+                  if (selectedMember.items[item.item_name] == null) {
+                    selectedMember.items[item.item_name] = {
                       ...item,
                       item_multiply: 1,
-                    });
+                    };
                   } else {
-                    selectedMember.items.get(
-                      item.item_name,
-                    )!.item_multiply += 1;
+                    selectedMember.items[item.item_name].item_multiply =
+                      selectedMember.items[item.item_name].item_multiply + 1;
                   }
                   setMembers(
                     members.map((m) =>
