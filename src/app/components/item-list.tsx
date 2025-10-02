@@ -1,6 +1,5 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import { BillData, BillItem } from '../types/Bill';
 import { useEffect, useState } from 'react';
 
@@ -15,11 +14,21 @@ interface BillItemWithId extends BillItem {
   id: string;
 }
 
+// Helper function to get cookie value
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    const cookieValue = parts.pop()?.split(';').shift();
+    return cookieValue ? decodeURIComponent(cookieValue) : null;
+  }
+  return null;
+};
+
 export default function ItemList(props: {
   handleFinalCalc: (members: Member[], billData: BillData) => Promise<void>;
 }) {
-  const searchParams = useSearchParams();
-  const billDataString = searchParams.get('data');
+  const [billDataString, setBillDataString] = useState<string | null>(null);
   const [unAssignedItems, setUnAssignedItems] = useState<
     BillItemWithId[] | null
   >(null);
@@ -32,6 +41,14 @@ export default function ItemList(props: {
   const billData: BillData | null = billDataString
     ? (JSON.parse(billDataString) as BillData)
     : null;
+
+  // Load bill data from cookie on component mount
+  useEffect(() => {
+    const cookieData = getCookie('billData');
+    if (cookieData) {
+      setBillDataString(cookieData);
+    }
+  }, []);
 
   useEffect(() => {
     if (billDataString) {

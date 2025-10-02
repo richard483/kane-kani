@@ -39,11 +39,10 @@ export default function FileInputForm(props: {
         action={async (formData: FormData) => {
           const billData = await handleFileProcessing(formData);
           if (billData && billData?.is_a_bill) {
-            const queryString = new URLSearchParams({
-              data: JSON.stringify(billData),
-            }).toString();
+            // Store data in cookies instead of query string
+            document.cookie = `billData=${encodeURIComponent(JSON.stringify(billData))}; path=/; max-age=3600`;
 
-            window.location.href = `/review?${queryString}`;
+            window.location.href = `/review`;
           } else {
             alert('Failed to process the file. Please try again.');
           }
