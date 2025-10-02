@@ -9,6 +9,7 @@ export default function FileInputForm(props: {
   handleFileProcessing: (formData: FormData) => Promise<BillData | undefined>;
 }) {
   const [base64InputValue, setBase64InputValue] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { handleFileProcessing } = props;
 
@@ -37,13 +38,15 @@ export default function FileInputForm(props: {
     <div className="flex justify-center items-center w-full h-full">
       <Form
         action={async (formData: FormData) => {
+          setIsLoading(true);
           const billData = await handleFileProcessing(formData);
           if (billData && billData?.is_a_bill) {
             // Store data in cookies instead of query string
             document.cookie = `billData=${encodeURIComponent(JSON.stringify(billData))}; path=/; max-age=3600`;
-
+            setIsLoading(false);
             window.location.href = `/review`;
           } else {
+            setIsLoading(false);
             alert('Failed to process the file. Please try again.');
           }
         }}
@@ -105,7 +108,7 @@ export default function FileInputForm(props: {
         />
         <input
           type="submit"
-          value="Upload"
+          value={isLoading ? 'Uploading...' : 'Upload'}
           style={{ backgroundColor: 'var(--color-green)' }}
           className="text-black py-2 px-4 rounded mt-8 cursor-pointer"
         />
