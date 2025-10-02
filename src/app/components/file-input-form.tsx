@@ -38,7 +38,7 @@ export default function FileInputForm(props: {
       <Form
         action={async (formData: FormData) => {
           const billData = await handleFileProcessing(formData);
-          if (billData) {
+          if (billData && billData?.is_a_bill) {
             const queryString = new URLSearchParams({
               data: JSON.stringify(billData),
             }).toString();

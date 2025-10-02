@@ -49,7 +49,7 @@ async function handleFileProcessing(
                   },
                 },
                 {
-                  text: 'is the given picture is a bill? if yes, return the information about the bill such as the merchant name for the title, some details about the merchant and cashier for the description, and an array about the item on the bill such as the item name, item multiply, and the item',
+                  text: 'is the given picture is a bill and the picture is clear enough to be read? if yes, return the information about the bill such as the merchant name for the title, some details about the merchant and cashier for the description, and an array about the item on the bill such as the item name, item multiply, and the item',
                 },
               ],
             },
@@ -69,7 +69,7 @@ async function handleFileProcessing(
                 },
                 is_a_bill: {
                   type: 'BOOLEAN',
-                  description: 'A flag to confirm if the document is a bill.',
+                  description: 'A flag to confirm if the document is a bill and the picture is clear enough to be read.',
                 },
                 total_price: {
                   type: 'NUMBER',
