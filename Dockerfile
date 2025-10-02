@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:21-alpine AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ ENV GEMINI_API_KEY=dummy_value
 
 RUN npm run build
 
-FROM node:22-alpine AS runner
+FROM node:21-alpine AS runner
 
 WORKDIR /app
 
@@ -28,3 +28,5 @@ COPY --from=builder /app/node_modules/sharp ./node_modules/sharp
 
 COPY src/middleware.ts ./src/middleware.ts
 COPY src/app/types/Bill.ts ./src/app/types/Bill.ts
+
+EXPOSE 3000
