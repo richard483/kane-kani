@@ -1,7 +1,8 @@
-import { cookies } from 'next/headers';
 import ItemList from '../components/item-list';
 import { BillData, BillItem } from '../types/Bill';
 import { Suspense } from 'react';
+import { saveDataToRedis } from '../utils/redis';
+import { redirect } from 'next/navigation';
 
 interface Member {
   id: number;
@@ -13,9 +14,12 @@ interface Member {
 
 async function handleFinalCalc(members: Member[], billData: BillData) {
   'use server';
-  const cookieStore = await cookies();
-  cookieStore.set('billData', JSON.stringify(billData));
-  cookieStore.set('members', JSON.stringify(members));
+
+  // Save data to Redis and get generated ID
+  const generatedId = await saveDataToRedis(billData, members);
+
+  // Redirect to /final/[id]
+  redirect(`/final/${generatedId}`);
 }
 
 export default function Home() {
