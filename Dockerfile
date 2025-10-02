@@ -11,9 +11,6 @@ RUN npm ci --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Set environment variable for build
-ENV GEMINI_API_KEY=dummy_value
-
 # Build the application
 RUN npm run build
 
