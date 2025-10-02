@@ -82,7 +82,7 @@ async function handleFileProcessing(
                 },
                 tax_rate: {
                   type: 'NUMBER',
-                  description: 'Tax rate in percentage if applicable.',
+                  description: 'Tax rate in percentage if applicable, if there are multiple tax, sum up all the tax, add the rounding, and calculate the tax rate based on the total price and the pre-tax price (total price - tax). If not applicable, set to null.',
                 },
                 service_fee: {
                   type: 'NUMBER',

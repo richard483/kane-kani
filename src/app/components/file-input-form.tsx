@@ -1,8 +1,7 @@
 'use client';
 
-import Form from 'next/form';
 import Image from 'next/image';
-import { useRef, useState } from 'react';
+import { useRef, useState, FormEvent } from 'react';
 import { BillData } from '../types/Bill';
 
 export default function FileInputForm(props: {
@@ -34,22 +33,29 @@ export default function FileInputForm(props: {
     }
   };
 
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const billData = await handleFileProcessing(formData);
+
+    if (billData && billData?.is_a_bill) {
+      document.cookie = `billData=${encodeURIComponent(
+        JSON.stringify(billData),
+      )}; path=/; max-age=3600`;
+      window.location.href = `/review`;
+    } else {
+      alert('Failed to process the file. Please try again.');
+    }
+    setIsLoading(false);
+  };
+
   return (
-    <div className="flex justify-center items-center w-full h-full">
-      <Form
-        action={async (formData: FormData) => {
-          setIsLoading(true);
-          const billData = await handleFileProcessing(formData);
-          if (billData && billData?.is_a_bill) {
-            // Store data in cookies instead of query string
-            document.cookie = `billData=${encodeURIComponent(JSON.stringify(billData))}; path=/; max-age=3600`;
-            setIsLoading(false);
-            window.location.href = `/review`;
-          } else {
-            setIsLoading(false);
-            alert('Failed to process the file. Please try again.');
-          }
-        }}
+    <div className="flex flex-col justify-center items-center w-full h-full">
+      <form
+        id="file-upload-form"
+        onSubmit={handleSubmit}
         className="flex flex-col justify-center items-center w-full h-full"
       >
         {base64InputValue ? (
@@ -106,13 +112,20 @@ export default function FileInputForm(props: {
           ref={fileInputRef}
           onChange={handleInputChange}
         />
-        <input
-          type="submit"
-          value={isLoading ? 'Uploading...' : 'Upload'}
-          style={{ backgroundColor: 'var(--color-green)' }}
-          className="text-black py-2 px-4 rounded mt-8 cursor-pointer"
-        />
-      </Form>
+      </form>
+
+      <button
+        type="submit"
+        form="file-upload-form"
+        disabled={isLoading}
+        style={{ backgroundColor: isLoading ? '#9CA3AF' : 'var(--color-green)' }}
+        className={`text-black py-2 px-4 rounded mt-8 ${isLoading
+          ? 'cursor-not-allowed opacity-50'
+          : 'cursor-pointer hover:opacity-90'
+          }`}
+      >
+        {isLoading ? 'Uploading...' : 'Upload'}
+      </button>
     </div>
   );
 }
