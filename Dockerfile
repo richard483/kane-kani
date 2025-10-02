@@ -24,7 +24,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install ONLY production dependencies
-RUN npm ci --frozen-lockfile
+# RUN npm ci --frozen-lockfile
 
 # Copy built application from builder
 COPY --from=builder /app/.next ./.next
