@@ -49,7 +49,7 @@ async function handleFileProcessing(
                   },
                 },
                 {
-                  text: 'is the given picture is a bill and the picture is clear enough to be read? if yes, return the information about the bill such as the merchant name for the title, some details about the merchant and cashier for the description, and an array about the item on the bill such as the item name, item multiply, and the item',
+                  text: 'Is the given picture is a bill and the picture is clear enough to be read? if yes, return the information about the bill such as the merchant name for the title, some details about the merchant and cashier for the description, and an array about the item on the bill such as the item name, item multiply, and the item. Please note that the bill is most likely to be in Indonesia Rupiah (IDR), so if there are number separation symbol like dot (.) or comma (,), it most likely to be separation of 3 number, not decimal fraction.',
                 },
               ],
             },
