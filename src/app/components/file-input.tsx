@@ -49,7 +49,7 @@ async function handleFileProcessing(
                   },
                 },
                 {
-                  text: 'is the given picture is a bill? if yes, return the information about the bill such as the merchant name for the title, some details about the merchant and cashier for the description, and an array about the item on the bill such as the item name, item multiply, and the item',
+                  text: 'Is the given picture is a bill and the picture is clear enough to be read? if yes, return the information about the bill such as the merchant name for the title, some details about the merchant and cashier for the description, and an array about the item on the bill such as the item name, item multiply, and the item. Please note that the bill is most likely to be in Indonesia Rupiah (IDR), so if there are number separation symbol like dot (.) or comma (,), it most likely to be separation of 3 number, not decimal fraction.',
                 },
               ],
             },
@@ -69,7 +69,7 @@ async function handleFileProcessing(
                 },
                 is_a_bill: {
                   type: 'BOOLEAN',
-                  description: 'A flag to confirm if the document is a bill.',
+                  description: 'A flag to confirm if the document is a bill and the picture is clear enough to be read.',
                 },
                 total_price: {
                   type: 'NUMBER',
@@ -82,12 +82,12 @@ async function handleFileProcessing(
                 },
                 tax_rate: {
                   type: 'NUMBER',
-                  description: 'Tax rate in percentage if applicable.',
+                  description: 'Tax rate in percentage if applicable, if there are multiple tax, sum up all the tax, add the rounding, and calculate the tax rate based on the total price and the pre-tax price (total price - tax). If not applicable, set to null.',
                 },
                 service_fee: {
                   type: 'NUMBER',
                   description:
-                    'Service fee, zero if not applicable, may include in the item list, if included in item lists, would taken out from the item lists & listed the value on this field without the tax calculation.',
+                    'Service fee (including service fee, and charge for Take Away (charge TA)), zero if not applicable, may include in the item list. If included in item lists, would taken out from the item lists & show the value on this serivce field without the tax calculation.',
                 },
                 properties: {
                   type: 'OBJECT',
