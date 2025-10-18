@@ -1,14 +1,7 @@
-import { BillData, BillItem } from '../../types/Bill';
+import { BillData } from '../../types/Bill';
+import { Member } from '../../types/Member';
 import { getDataFromRedis } from '../../utils/redis';
 import { notFound } from 'next/navigation';
-
-interface Member {
-  id: number;
-  name: string;
-  items: {
-    [key: string]: BillItem;
-  };
-}
 
 interface PageProps {
   params: Promise<{
