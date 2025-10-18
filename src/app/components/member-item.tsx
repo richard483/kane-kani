@@ -11,7 +11,6 @@ export default function MemberItem(props: {
   setSelectedMember: React.Dispatch<React.SetStateAction<Member | null>>;
 }) {
   return <li
-    key={props.key}
     className="mb-2 cursor-pointer"
     onClick={() => props.setSelectedMember(props.member)}
   >
