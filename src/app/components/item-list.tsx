@@ -122,10 +122,10 @@ export default function ItemList(props: {
       <div>
         <h3 className="font-bold justify-self-center mb-8">Unassigned Items</h3>
         <ul className="list-disc gap-8">
-          {unAssignedItems?.map((item, index) => (
+          {unAssignedItems?.map((unassignedItem, index) => (
             <UnassignedItem
               key={index}
-              item={item}
+              unassignedItem={unassignedItem}
               members={members}
               selectedMember={selectedMember}
               setMembers={setMembers}

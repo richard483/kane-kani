@@ -1,7 +1,7 @@
 import { BillItemWithId, Member } from "../types/Member";
 
 export default function SharingItemModal(props: {
-  item: BillItemWithId;
+  unassignedItem: BillItemWithId;
   members: Member[];
   unAssignedItems: BillItemWithId[];
   selectedMembersForSharing: number[];
@@ -12,7 +12,7 @@ export default function SharingItemModal(props: {
 }) {
   return <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white rounded-lg p-6 shadow-lg max-w-md w-full mx-4">
-      <h3 className="text-lg text-black font-bold mb-4">Split &quot;{props.item.item_name}&quot; among members</h3>
+      <h3 className="text-lg text-black font-bold mb-4">Split &quot;{props.unassignedItem.item_name}&quot; among members</h3>
       <p className="text-sm text-gray-600 mb-4">
         Select members to split this props.item. The cost will be divided equally.
       </p>
@@ -55,12 +55,12 @@ export default function SharingItemModal(props: {
           onClick={() => {
             if (props.selectedMembersForSharing.length > 0) {
               // Calculate the divided price
-              const dividedPrice = props.item.item_price / props.selectedMembersForSharing.length;
+              const dividedPrice = props.unassignedItem.item_price / props.selectedMembersForSharing.length;
 
               // Add the item to each selected member with divided price
               const updatedMembers = props.members.map((member) => {
                 if (props.selectedMembersForSharing.includes(member.id) && props.selectedMembersForSharing.length > 1) {
-                  const itemKey = `${props.item.item_name} (Split)`;
+                  const itemKey = `${props.unassignedItem.item_name} (Split)`;
                   const existingItem = member.items[itemKey];
 
                   return {
@@ -73,7 +73,7 @@ export default function SharingItemModal(props: {
                           item_multiply: existingItem.item_multiply + 1,
                         }
                         : {
-                          ...props.item,
+                          ...props.unassignedItem,
                           item_name: itemKey,
                           item_price: dividedPrice,
                           item_multiply: 1,
@@ -87,19 +87,19 @@ export default function SharingItemModal(props: {
               props.setMembers(updatedMembers);
 
               // Decrease the unassigned item count by 1
-              if (props.item.item_multiply > 1) {
-                console.log('#patungan - item before decrease:', props.item);
-                props.item.item_multiply -= 1;
-              } else {
-                console.log('#patungan - 1item before decrease:', props.item);
-                props.setUnAssignedItems(
-                  props.unAssignedItems.filter((i) => {
-                    console.log('#patungan - filtering item i:', i);
-                    console.log('#patungan - filtering ITEM:', props.item);
-                    return i.id !== props.item.id
-                  }),
-                );
-              }
+              props.setUnAssignedItems((prev) => {
+                if (prev == null) return prev;
+
+                return prev.map((item) => {
+                  if (item.id === props.unassignedItem.id) {
+                    return {
+                      ...item,
+                      item_multiply: item.item_multiply - 1,
+                    };
+                  }
+                  return item;
+                }).filter((item) => item.item_multiply > 0);
+              });
 
               // Close modal and reset selection
               props.setShowSharingItemModal(null);
