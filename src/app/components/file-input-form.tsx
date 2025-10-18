@@ -43,7 +43,7 @@ export default function FileInputForm(props: {
     if (billData && billData?.is_a_bill) {
       document.cookie = `billData=${encodeURIComponent(
         JSON.stringify(billData),
-      )}; path=/; max-age=3600`;
+      )}; path=/; max-age=${3600 * 24 * 7}`;
       window.location.href = `/review`;
     } else {
       alert('Failed to process the file. Please try again.');
