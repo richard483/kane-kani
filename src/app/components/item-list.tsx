@@ -2,6 +2,7 @@
 
 import { BillData, BillItem } from '../types/Bill';
 import { useEffect, useState } from 'react';
+import getCookie from '../utils/cookie';
 
 interface Member {
   id: number;
@@ -14,16 +15,6 @@ interface BillItemWithId extends BillItem {
   id: string;
 }
 
-// Helper function to get cookie value
-const getCookie = (name: string): string | null => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    const cookieValue = parts.pop()?.split(';').shift();
-    return cookieValue ? decodeURIComponent(cookieValue) : null;
-  }
-  return null;
-};
 
 export default function ItemList(props: {
   handleFinalCalc: (members: Member[], billData: BillData) => Promise<void>;
