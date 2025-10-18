@@ -1,11 +1,11 @@
-import { BillItemWithId, Member } from "../types/Member";
+import { BillItemWithId, MemberWithBill } from "../types/Member";
 
 export default function SharingItemModal(props: {
   unassignedItem: BillItemWithId;
-  members: Member[];
+  members: MemberWithBill[];
   unAssignedItems: BillItemWithId[];
   selectedMembersForSharing: number[];
-  setMembers: React.Dispatch<React.SetStateAction<Member[]>>;
+  setMembers: React.Dispatch<React.SetStateAction<MemberWithBill[]>>;
   setUnAssignedItems: React.Dispatch<React.SetStateAction<BillItemWithId[] | null>>;
   setShowSharingItemModal: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMembersForSharing: React.Dispatch<React.SetStateAction<number[]>>;

@@ -1,13 +1,6 @@
 import Redis from 'ioredis';
-import { BillData, BillItem } from '../types/Bill';
-
-interface Member {
-  id: number;
-  name: string;
-  items: {
-    [key: string]: BillItem;
-  };
-}
+import { BillData } from '../types/Bill';
+import { Member } from '../types/Member';
 
 interface CachedData {
   billData: BillData;

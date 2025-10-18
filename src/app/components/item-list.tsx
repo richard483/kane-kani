@@ -5,28 +5,22 @@ import { useEffect, useState } from 'react';
 import getCookie from '../utils/cookie';
 import MemberItem from './member-item';
 import UnassignedItem from './unassigned-item';
+import { MemberWithBill } from '../types/Member';
 
-interface Member {
-  id: number;
-  name: string;
-  items: {
-    [key: string]: BillItemWithId;
-  };
-}
 interface BillItemWithId extends BillItem {
   id: string;
 }
 
 
 export default function ItemList(props: {
-  handleFinalCalc: (members: Member[], billData: BillData) => Promise<void>;
+  handleFinalCalc: (members: MemberWithBill[], billData: BillData) => Promise<void>;
 }) {
   const [billDataString, setBillDataString] = useState<string | null>(null);
   const [unAssignedItems, setUnAssignedItems] = useState<
     BillItemWithId[] | null
   >(null);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [members, setMembers] = useState<MemberWithBill[]>([]);
+  const [selectedMember, setSelectedMember] = useState<MemberWithBill | null>(null);
   const [newMemberName, setNewMemberName] = useState<string>('');
   const [showSharingItemModal, setShowSharingItemModal] = useState<string | null>(null);
   const [selectedMembersForSharing, setSelectedMembersForSharing] = useState<number[]>([]);
@@ -106,7 +100,7 @@ export default function ItemList(props: {
         <button
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
           onClick={() => {
-            const newMember: Member = {
+            const newMember: MemberWithBill = {
               id: members.length + 1,
               name: `${newMemberName || 'Member'} ${newMemberName ? '' : members.length + 1
                 }`,

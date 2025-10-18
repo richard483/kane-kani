@@ -1,14 +1,14 @@
-import { BillItemWithId, Member } from "../types/Member";
+import { BillItemWithId, MemberWithBill } from "../types/Member";
 
 export default function MemberItem(props: {
   key: number;
-  member: Member;
-  members: Member[];
+  member: MemberWithBill;
+  members: MemberWithBill[];
   unAssignedItems?: BillItemWithId[] | null;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  setMembers: React.Dispatch<React.SetStateAction<Member[]>>;
+  setMembers: React.Dispatch<React.SetStateAction<MemberWithBill[]>>;
   setUnAssignedItems: React.Dispatch<React.SetStateAction<BillItemWithId[] | null>>;
-  setSelectedMember: React.Dispatch<React.SetStateAction<Member | null>>;
+  setSelectedMember: React.Dispatch<React.SetStateAction<MemberWithBill | null>>;
 }) {
   return <li className="mb-2 cursor-pointer flex flex-row justify-between items-start">
     <div>
