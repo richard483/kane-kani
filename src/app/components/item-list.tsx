@@ -3,6 +3,7 @@
 import { BillData, BillItem } from '../types/Bill';
 import { useEffect, useState } from 'react';
 import getCookie from '../utils/cookie';
+import MemberItem from './member-item';
 
 interface Member {
   id: number;
@@ -67,46 +68,15 @@ export default function ItemList(props: {
         <h3>Member</h3>
         <ul className="list-disc">
           {members.map((member, index) => (
-            <li
+            <MemberItem
               key={index}
-              className="mb-2 cursor-pointer"
-              onClick={() => setSelectedMember(member)}
-            >
-              <span className="font-bold">{member.name}</span>
-              <ul className="list-disc ml-4">
-                {Object.values(member.items).map((memberItem, itemIndex) => (
-                  <li key={itemIndex}>
-                    {memberItem.item_name} {memberItem.item_price}
-                    {' * '}
-                    <input
-                      type="number"
-                      value={memberItem.item_multiply}
-                      className="w-8"
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value);
-                        if (!isNaN(newValue)) {
-                          const diffBetweenNewAndOld =
-                            newValue - memberItem.item_multiply;
-                          memberItem.item_multiply = newValue;
-                          setMembers([...members]);
-                          setUnAssignedItems(
-                            unAssignedItems?.map((i) =>
-                              i.id == memberItem.id
-                                ? {
-                                  ...i,
-                                  item_multiply:
-                                    i.item_multiply - diffBetweenNewAndOld,
-                                }
-                                : i,
-                            ) || null,
-                          );
-                        }
-                      }}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </li>
+              member={member}
+              setSelectedMember={setSelectedMember}
+              members={members}
+              unAssignedItems={unAssignedItems}
+              setMembers={setMembers}
+              setUnAssignedItems={setUnAssignedItems}
+            />
           ))}
         </ul>
         <input
