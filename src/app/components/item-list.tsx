@@ -66,7 +66,24 @@ export default function ItemList(props: {
   return (
     <div className="flex flex-col gap-10 justify-center items-center w-full h-full">
       <div>
-        <h3>Member</h3>
+        <h3 className="font-bold">Selected Member to assign item:</h3>
+        {selectedMember ? (
+          <div>
+            <h4 className="font-bold">{selectedMember.name}</h4>
+            <ul className="list-disc">
+              {Object.values(selectedMember.items).map((item) => (
+                <li key={item.id}>
+                  {item.item_name} - {item.item_multiply} x {item.item_price}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p>No member selected</p>
+        )}
+      </div>
+      <div>
+        <h3 className="font-bold justify-self-center">Member(s)</h3>
         <ul className="list-disc">
           {members.map((member, index) => (
             <MemberItem
@@ -103,8 +120,8 @@ export default function ItemList(props: {
         </button>
       </div>
       <div>
-        <h3>Unassigned Items</h3>
-        <ul className="list-disc">
+        <h3 className="font-bold justify-self-center mb-8">Unassigned Items</h3>
+        <ul className="list-disc gap-8">
           {unAssignedItems?.map((item, index) => (
             <UnassignedItem
               key={index}
