@@ -1,16 +1,37 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, useState, FormEvent } from 'react';
+import { useRef, useState, FormEvent, useEffect } from 'react';
 import { BillData } from '../types/Bill';
+import { Location } from '../types/Location';
 
 export default function FileInputForm(props: {
   handleFileProcessing: (formData: FormData) => Promise<BillData | undefined>;
 }) {
+  const { handleFileProcessing } = props;
   const [base64InputValue, setBase64InputValue] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { handleFileProcessing } = props;
+  const [location, setLocation] = useState<Location | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showError, setShowError] = useState(true);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const loc: Location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+          setLocation(loc);
+        },
+        (err) => {
+          setError(err.message);
+        },
+      );
+    }
+  }, []);
 
   const handleInputChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -44,6 +65,13 @@ export default function FileInputForm(props: {
       document.cookie = `billData=${encodeURIComponent(
         JSON.stringify(billData),
       )}; path=/; max-age=${3600 * 24 * 7}`;
+
+      if (location) {
+        document.cookie = `location=${encodeURIComponent(
+          JSON.stringify(location),
+        )}; path=/; max-age=${3600 * 24 * 7}`;
+      }
+
       window.location.href = `/review`;
     } else {
       alert('Failed to process the file. Please try again.');
@@ -53,6 +81,19 @@ export default function FileInputForm(props: {
 
   return (
     <div className="flex flex-col justify-center items-center w-full h-full">
+      {error && (
+        <div className={`p-3 mb-4 flex items-start gap-2 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 absolute top-4 right-4 transition-opacity duration-500 ${showError ? 'opacity-100' : 'opacity-0'}`} role="alert">
+          <button className={`text-gray-500 hover:text-gray-700`} onClick={() => setShowError(false)}>
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          <div className="">
+            <span className="font-bold">Geolocation Error!</span><br />
+            <span className="font-medium">Error getting location: {error}</span>
+          </div>
+        </div>
+      )}
       <form
         id="file-upload-form"
         onSubmit={handleSubmit}

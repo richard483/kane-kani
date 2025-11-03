@@ -13,7 +13,7 @@ interface BillItemWithId extends BillItem {
 
 
 export default function ItemList(props: {
-  handleFinalCalc: (members: MemberWithBill[], billData: BillData) => Promise<void>;
+  handleFinalCalc: (members: MemberWithBill[], billData: BillData, location: Location | null) => Promise<void>;
 }) {
   const [billDataString, setBillDataString] = useState<string | null>(null);
   const [unAssignedItems, setUnAssignedItems] = useState<
@@ -24,16 +24,24 @@ export default function ItemList(props: {
   const [newMemberName, setNewMemberName] = useState<string>('');
   const [showSharingItemModal, setShowSharingItemModal] = useState<string | null>(null);
   const [selectedMembersForSharing, setSelectedMembersForSharing] = useState<number[]>([]);
+  const [location, setLocation] = useState<Location | null>(null);
 
   const billData: BillData | null = billDataString
     ? (JSON.parse(billDataString) as BillData)
     : null;
 
-  // Load bill data from cookie on component mount
   useEffect(() => {
+    // Load bill data from cookie on component mount
     const cookieData = getCookie('billData');
     if (cookieData) {
       setBillDataString(cookieData);
+    }
+
+    // Get location from cookie
+    const locationData = getCookie('location');
+    if (locationData) {
+      const loc: Location = JSON.parse(locationData) as Location;
+      setLocation(loc);
     }
   }, []);
 
@@ -145,7 +153,7 @@ export default function ItemList(props: {
           <button
             onClick={async () => {
               if (billData) {
-                await props.handleFinalCalc(members, billData);
+                await props.handleFinalCalc(members, billData, location);
               }
             }}
             className="mt-4 px-4 py-2 bg-green-500 text-white rounded"

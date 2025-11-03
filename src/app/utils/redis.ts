@@ -5,6 +5,7 @@ import { Member } from '../types/Member';
 interface CachedData {
   billData: BillData;
   members: Member[];
+  location: Location | null;
 }
 
 const redis = new Redis({
@@ -22,9 +23,9 @@ export function generateId(): string {
   return Math.random().toString(36).substring(2, 15) + '-' + epochHex;
 }
 
-export async function saveDataToRedis(billData: BillData, members: Member[]): Promise<string> {
+export async function saveDataToRedis(billData: BillData, members: Member[], location: Location | null): Promise<string> {
   const id = generateId();
-  const data: CachedData = { billData, members };
+  const data: CachedData = { billData, members, location };
 
   const expirationSeconds = 30 * 24 * 60 * 60;
 
