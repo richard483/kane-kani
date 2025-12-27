@@ -61,7 +61,7 @@ export default function UnassignedItem(props: {
           }
         }}
       >
-        Assign item
+        Assign
       </button>
 
       <button
@@ -75,7 +75,7 @@ export default function UnassignedItem(props: {
           }
         }}
       >
-        Share item
+        Share
       </button>
     </div>
 

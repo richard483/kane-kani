@@ -77,6 +77,7 @@ export default function SharingItemModal(props: {
                           item_name: itemKey,
                           item_price: dividedPrice,
                           item_multiply: 1,
+                          sharedWith: props.selectedMembersForSharing,
                         }
                     }
                   };

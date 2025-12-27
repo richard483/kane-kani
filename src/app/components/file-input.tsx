@@ -43,8 +43,9 @@ async function handleFileProcessing(
       compressedBase64String.length,
     );
 
+    const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp';
     const response = await axios(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+      `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`,
       {
         method: 'POST',
         data: getGeminiRequestData(compressedBase64String),
