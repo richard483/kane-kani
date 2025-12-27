@@ -27,6 +27,7 @@ ENV  CLIENT_ID=your_client_id
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+COPY next.config.ts ./
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -48,6 +49,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.ts ./
 
 # Expose the app on port 3000
 EXPOSE 3000
